@@ -29,9 +29,10 @@ validate_endpoint_contract() {
   local url="$1"
   local out="$2"
 
-  # Validate JSON parse + require a minimal identity contract.
-  # - For our custom Flask apps, enforce app_name/pod_name/pod_ip.
-  # - For podinfo (or other apps), accept hostname/pod_name.
+  # Validate JSON identity contract required by the homework:
+  # Every application must return at least:
+  # - pod_name
+  # - pod_ip
   python3 - "${out}" <<'PY'
 import json
 import sys
@@ -40,21 +41,10 @@ path = sys.argv[1]
 with open(path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-# Custom Flask contract.
-if "app_name" in data:
-    required = ["app_name", "pod_name", "pod_ip"]
-    missing = [k for k in required if k not in data]
-    if missing:
-        print(f"Custom app response missing keys: {', '.join(missing)}", file=sys.stderr)
-        sys.exit(1)
-
-# podinfo contract (native schema).
-elif "hostname" in data or "pod_name" in data:
-    # Accept if an identity-ish field exists.
-    pass
-
-else:
-    print("Response missing expected identity field (app_name, hostname, or pod_name).", file=sys.stderr)
+required = ["pod_name", "pod_ip"]
+missing = [k for k in required if k not in data]
+if missing:
+    print(f"Response missing required keys: {', '.join(missing)}", file=sys.stderr)
     sys.exit(1)
 PY
 

@@ -57,7 +57,7 @@ Pods (Deployments)
 
 * `app1` (custom Flask app)
 * `app2` (custom Flask app)
-* `podinfo` (external demo app)
+* `podinfo` (bonus app using the same contract as app1/app2)
 
 ---
 
@@ -165,7 +165,7 @@ Then access:
 * [http://127.0.0.1:8080/app2](http://127.0.0.1:8080/app2)
 * [http://127.0.0.1:8080/podinfo](http://127.0.0.1:8080/podinfo)
 
-For Flask-based app routes, the JSON response includes `pod_name` and `pod_ip`.
+All application routes return `pod_name` and `pod_ip` as required.
 
 ---
 
@@ -188,8 +188,7 @@ The script:
 * Sends requests to all endpoints
 * Fails immediately on error (`set -euo pipefail`)
 * Validates JSON response contracts for each endpoint:
-  * If JSON includes `app_name`, it must also include `pod_name` and `pod_ip`
-  * Otherwise it must include an identity field (`hostname` or `pod_name`)
+* The JSON response must include `pod_name` and `pod_ip`
 * Supports scalable discovery:
   * `SMOKE_PATHS` (space-separated ingress paths like `/app1 /podinfo`)
   * `SMOKE_URLS` (space-separated full URLs)
@@ -216,7 +215,7 @@ SMOKE_BASE_URL=http://127.0.0.1:8080 SMOKE_PATHS="/app1 /podinfo" ./scripts/smok
 
 Expected:
 
-* Each tested endpoint returns JSON with the expected identity contract (see rules above)
+* Each tested endpoint returns JSON with `pod_name` and `pod_ip`
 
 ---
 
@@ -228,7 +227,7 @@ Notes:
 * Monitoring is enabled via Terraform variable `enable_monitoring`.
 * Prometheus scrapes the applications from `GET /metrics` (including `app1`, `app2`, and `podinfo`).
 * The custom Flask apps (`app1` and `app2`) export Prometheus metrics at `/metrics` (via `prometheus-client`).
-* `podinfo` is scraped from its `/metrics` endpoint (port `9898`).
+* `podinfo` is scraped from its `/metrics` endpoint (port `8080`).
 * GitHub Actions CI keeps monitoring disabled (`terraform/environments/ci.tfvars` sets `enable_monitoring = false`).
 
 Enable it locally:

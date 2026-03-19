@@ -30,9 +30,11 @@ locals {
     }
 
     podinfo = {
-      image           = "stefanprodan/podinfo:6.7.1"
-      container_port  = 9898
-      service_port    = 9898
+      # "podinfo" bonus app uses the same reusable Flask app image so it
+      # satisfies the required response contract (pod_name + pod_ip).
+      image           = "shadibdair/pod-meta-app:latest"
+      container_port  = 8080
+      service_port    = 8080
       replicas        = 1
       path            = "/podinfo"
       health_path     = "/healthz"
