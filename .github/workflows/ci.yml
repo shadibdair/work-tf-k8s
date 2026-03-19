@@ -89,8 +89,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Fail fast per app and print pod diagnostics for easier debugging.
-          for d in app1 app2 podinfo; do
+          # Fail fast per app deployment and print pod diagnostics for easier debugging.
+          # Scales automatically: we discover deployments in the apps namespace.
+          deployments="$(kubectl -n candidate-apps get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')"
+          if [[ -z "${deployments}" ]]; then
+            echo "No deployments found in candidate-apps; nothing to wait for."
+            exit 1
+          fi
+
+          while IFS= read -r d; do
+            [[ -z "${d}" ]] && continue
             echo "Waiting for deployment/${d} to become ready..."
             if ! kubectl -n candidate-apps rollout status "deploy/${d}" --timeout=180s; then
               echo "Deployment/${d} rollout failed; dumping diagnostics..."
@@ -98,7 +106,7 @@ jobs:
               kubectl -n candidate-apps describe pod -l "app=${d}" || true
               exit 1
             fi
-          done
+          done <<< "${deployments}"
 
       - name: Port-forward ingress and run smoke tests
         run: |
@@ -112,7 +120,18 @@ jobs:
 
           # Allow ingress controller to accept connections
           sleep 5
-          SMOKE_BASE_URL="http://127.0.0.1:8080" ./scripts/smoke-test.sh
+
+          # Discover ingress paths so smoke testing scales with new apps.
+          # Ingress name is `apps-ingress` (created by terraform/ingress.tf).
+          paths="$(kubectl -n candidate-apps get ingress apps-ingress -o jsonpath='{range .spec.rules[*].http.paths[*]}{.path}{"\n"}{end}' || true)"
+          if [[ -z "${paths}" ]]; then
+            echo "No ingress paths discovered; falling back to known defaults."
+            SMOKE_PATHS="/app1 /app2 /podinfo"
+          else
+            SMOKE_PATHS="$(echo "${paths}" | tr '\n' ' ')"
+          fi
+
+          SMOKE_BASE_URL="http://127.0.0.1:8080" SMOKE_PATHS="${SMOKE_PATHS}" ./scripts/smoke-test.sh
 
   # Separate container build check to ensure Dockerfile stays valid.
   app-build:

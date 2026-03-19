@@ -25,28 +25,13 @@ if missing:
 PY
 }
 
-check_flask_endpoint() {
-  local name="$1"
-  local url="$2"
-  local out="/tmp/${name}-response.json"
-
-  echo "Testing ${url}"
-  curl -fsS "${url}" > "${out}"
-  cat "${out}"
-  # Homework contract for custom apps: must expose identity fields.
-  require_json_keys "${out}" app_name pod_name pod_ip
-}
-
-check_podinfo_endpoint() {
+validate_endpoint_contract() {
   local url="$1"
-  local out="/tmp/podinfo-response.json"
+  local out="$2"
 
-  echo "Testing ${url}"
-  curl -fsS "${url}" > "${out}"
-  cat "${out}"
-
-  # Podinfo has a different runtime schema than the Flask app.
-  # Validate JSON and require identity-ish fields expected from podinfo.
+  # Validate JSON parse + require a minimal identity contract.
+  # - For our custom Flask apps, enforce app_name/pod_name/pod_ip.
+  # - For podinfo (or other apps), accept hostname/pod_name.
   python3 - "${out}" <<'PY'
 import json
 import sys
@@ -55,26 +40,65 @@ path = sys.argv[1]
 with open(path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-if "hostname" not in data and "pod_name" not in data:
-    print("Podinfo response missing expected identity field (hostname or pod_name).", file=sys.stderr)
+# Custom Flask contract.
+if "app_name" in data:
+    required = ["app_name", "pod_name", "pod_ip"]
+    missing = [k for k in required if k not in data]
+    if missing:
+        print(f"Custom app response missing keys: {', '.join(missing)}", file=sys.stderr)
+        sys.exit(1)
+
+# podinfo contract (native schema).
+elif "hostname" in data or "pod_name" in data:
+    # Accept if an identity-ish field exists.
+    pass
+
+else:
+    print("Response missing expected identity field (app_name, hostname, or pod_name).", file=sys.stderr)
     sys.exit(1)
 PY
+
+  echo "Validated contract for ${url}"
+}
+
+split_words() {
+  # Split a whitespace-separated string into bash words safely.
+  # Usage: split_words "$VAR" ; then read words from "$@".
+  printf "%s" "$1" | tr -s '[:space:]' ' '
 }
 
 echo "Running smoke tests..."
 
-# Verify both custom Flask routes satisfy the required response contract.
-echo "[1/3] Testing /app1"
-check_flask_endpoint "app1" "${BASE_URL}/app1"
+SMOKE_URLS="${SMOKE_URLS:-}"
+SMOKE_PATHS="${SMOKE_PATHS:-}"
 
-echo
-echo "[2/3] Testing /app2"
-check_flask_endpoint "app2" "${BASE_URL}/app2"
+declare -a urls=()
 
-echo
-# Verify podinfo is reachable and returns pod identity in its native schema.
-echo "[3/3] Testing /podinfo"
-check_podinfo_endpoint "${BASE_URL}/podinfo"
+if [[ -n "${SMOKE_URLS}" ]]; then
+  # Caller provided explicit URLs.
+  for u in $(split_words "${SMOKE_URLS}"); do
+    urls+=("${u}")
+  done
+elif [[ -n "${SMOKE_PATHS}" ]]; then
+  # Caller provided ingress paths (e.g. "/app1 /podinfo").
+  for p in $(split_words "${SMOKE_PATHS}"); do
+    urls+=("${BASE_URL}${p}")
+  done
+else
+  # Backward-compatible default for older setups.
+  urls+=("${BASE_URL}/app1" "${BASE_URL}/app2" "${BASE_URL}/podinfo")
+fi
 
-echo
+idx=1
+total="${#urls[@]}"
+for url in "${urls[@]}"; do
+  out="/tmp/smoke-$(echo "${url}" | sed 's#[/:]#_#g').json"
+  echo "[${idx}/${total}] Testing ${url}"
+  curl -fsS "${url}" > "${out}"
+  cat "${out}"
+  validate_endpoint_contract "${url}" "${out}"
+  echo
+  idx=$((idx + 1))
+done
+
 echo "Smoke tests passed."

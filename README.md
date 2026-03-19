@@ -169,8 +169,12 @@ The script:
 
 * Sends requests to all endpoints
 * Fails immediately on error (`set -euo pipefail`)
-* Validates JSON response contracts for Flask app routes (`app_name`, `pod_name`, `pod_ip`)
-* Validates podinfo endpoint returns a JSON identity field (`hostname` or `pod_name`)
+* Validates JSON response contracts for each endpoint:
+  * If JSON includes `app_name`, it must also include `pod_name` and `pod_ip`
+  * Otherwise it must include an identity field (`hostname` or `pod_name`)
+* Supports scalable discovery:
+  * `SMOKE_PATHS` (space-separated ingress paths like `/app1 /podinfo`)
+  * `SMOKE_URLS` (space-separated full URLs)
 
 Expected output:
 
@@ -186,10 +190,15 @@ curl -s http://127.0.0.1:8080/app2 | jq .
 curl -s http://127.0.0.1:8080/podinfo | jq .
 ```
 
+To test a custom set of endpoints:
+
+```bash
+SMOKE_BASE_URL=http://127.0.0.1:8080 SMOKE_PATHS="/app1 /podinfo" ./scripts/smoke-test.sh
+```
+
 Expected:
 
-* `app1` and `app2` include `app_name`, `pod_name`, and `pod_ip`
-* `podinfo` includes `hostname` (or `pod_name`)
+* Each tested endpoint returns JSON with the expected identity contract (see rules above)
 
 ---
 
