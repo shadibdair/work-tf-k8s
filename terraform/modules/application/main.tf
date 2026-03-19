@@ -8,6 +8,10 @@ resource "kubernetes_deployment" "app" {
     }
   }
 
+  # Avoid long/indefinite Terraform waits in CI.
+  # The workflow already runs `kubectl rollout status` and smoke tests.
+  wait_for_rollout = false
+
   spec {
     replicas = var.replicas
 

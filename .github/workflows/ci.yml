@@ -70,9 +70,17 @@ jobs:
 
       - name: Wait for deployments
         run: |
-          kubectl -n candidate-apps rollout status deploy/app1 --timeout=180s
-          kubectl -n candidate-apps rollout status deploy/app2 --timeout=180s
-          kubectl -n candidate-apps rollout status deploy/podinfo --timeout=180s
+          set -euo pipefail
+
+          for d in app1 app2 podinfo; do
+            echo "Waiting for deployment/${d} to become ready..."
+            if ! kubectl -n candidate-apps rollout status "deploy/${d}" --timeout=180s; then
+              echo "Deployment/${d} rollout failed; dumping diagnostics..."
+              kubectl -n candidate-apps get pods -o wide -l "app=${d}" || true
+              kubectl -n candidate-apps describe pod -l "app=${d}" || true
+              exit 1
+            fi
+          done
 
       - name: Port-forward ingress and run smoke tests
         run: |
