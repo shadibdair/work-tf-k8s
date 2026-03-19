@@ -329,55 +329,71 @@ The following screenshots are included in `screenshots/` as execution proof (loc
 **Smoke tests passed for all task routes.**  
 ![Smoke tests pass](screenshots/Run-smoke-test.png)
 
-#### 4) API Contract Validation
+#### 4) Docker Hub Image Availability
+**Published image is available in Docker Hub (`shadibdair/pod-meta-app`).**  
+![Docker Hub image](screenshots/docker-hub-repo-image-pod-meta-app.png)
+
+#### 5) API Contract Validation
 **Manual response proof shows `pod_name` and `pod_ip`.**  
 ![Manual response proof](screenshots/Manual-response-proof.png)
 
-#### 5) Kubernetes Resources Created
+#### 6) Kubernetes Resources Created
 **Deployments, Services, and Ingress are present in the target namespace.**  
 ![Deployed resources](screenshots/Show-deployed-resources.png)
 
-#### 6) Lens Cluster View
+#### 7) Lens Cluster View
 **Visual cluster proof from Lens showing running pods.**  
 ![Lens pods view](screenshots/Lens-show-all-pod-in-cluster.png)
 
-#### 7) Probes Verification
+#### 8) Probes Verification
 **Readiness and liveness probes are configured on deployments.**  
 ![Probes configured](screenshots/Show-probes-are-configured.png)
 
+#### 9) Probes Verification (hello-kubernetes)
+**Readiness and liveness probes are also configured for `hello-kubernetes`.**  
+![Probes configured hello-kubernetes](screenshots/Show-probes-are-configured-hello-k8s.png)
+
 ### 📊 Monitoring & Grafana
 
-#### 8) Monitoring Stack Running
+#### 10) Monitoring Stack Running
 **Prometheus and Grafana stack is running in `monitoring` namespace.**  
 ![Monitoring stack](screenshots/Verify-monitoring-stack.png)
 
-#### 9) Grafana UI Accessible
+#### 11) Grafana UI Accessible
 **Grafana login/UI is reachable through port-forward.**  
 ![Grafana UI](screenshots/Open-Grafana-ui.png)
 
-#### 10) Dashboard Imported
+#### 12) Dashboard Imported
 **Imported dashboard is visible in Grafana.**  
 ![Grafana dashboard](screenshots/dashboard-in-GrafanaUI-1.png)
 
-#### 11) New App in Grafana Data
+#### 13) Dashboard Query/Explore View
+**Grafana query/explore view confirms dashboard-level metric exploration.**  
+![Grafana query explore](screenshots/dashboard-in-GrafanaUI-2-query-explore.png)
+
+#### 14) New App in Grafana Data
 **`hello-kubernetes` is visible in Grafana query/data exploration.**  
 ![New app in Grafana](screenshots/new-app-in%20Grafana-data-ui-query-explore-hello-k8s.png)
 
+#### 15) Prometheus Query Proof
+**Prometheus UI queries confirm app metrics are available for visualization.**  
+![Prometheus queries](screenshots/Prometheus-queries-ui.png)
+
 ### ✅ GitHub Actions CI Evidence
 
-#### 12) CI Triggered by Push
+#### 16) CI Triggered by Push
 **Workflow run was triggered after pushing changes.**  
 ![CI triggered](screenshots/Push-and-trigger-CI-ui-trigger-gihubaction.png)
 
-#### 13) All Jobs Green
+#### 17) All Jobs Green
 **Terraform checks, build, and deploy+smoke jobs all succeeded.**  
 ![CI all jobs green](screenshots/Show-all-jobs-green-githubaction-ui.png)
 
-#### 14) CI Deploy Step Proof
+#### 18) CI Deploy Step Proof
 **Deploy job shows rollout/wait behavior in CI environment.**  
 ![CI deploy step proof](screenshots/CI-deploy-proof-deploy-and-smoke-test-githubaction-ui.png)
 
-#### 15) CI Smoke-Test Proof
+#### 19) CI Smoke-Test Proof
 **CI smoke-test step completed successfully.**  
 ![CI smoke test proof](screenshots/CI-smoke-test-proof-githubaction-ui.png)
 
