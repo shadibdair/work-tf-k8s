@@ -203,6 +203,34 @@ Key clarification:
 ---
 
 
+## 🧪 Run CI/CD locally (act)
+
+You can run the GitHub Actions workflow locally using `act`:
+
+Requirements:
+
+* Docker installed and running
+* `act` installed
+
+Run only the Terraform checks:
+
+```bash
+act -j terraform
+```
+
+Run the full deploy+smoke-test job (creates an ephemeral Minikube inside the local `act` environment):
+
+```bash
+act -j deploy-and-test
+```
+
+Notes:
+
+* This mirrors CI behavior: it does not update your local Minikube cluster after the run ends.
+* If `act` cannot start Minikube due to permissions/driver constraints, use the manual steps in **Local Development** instead.
+
+---
+
 ## 🔁 How It Works
 
 * Applications are defined in a **map (`locals.applications`)**
