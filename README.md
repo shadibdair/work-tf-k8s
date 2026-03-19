@@ -28,6 +28,7 @@ This implementation fully satisfies the task requirements:
   * `/app2`
   * `/podinfo`
 * **Traffic is routed only to healthy pods** using readiness probes
+* **Unhealthy pods are recovered automatically** using liveness probes
 * Each application has a **distinct and accessible route**
 
 ---
@@ -220,6 +221,7 @@ No additional Terraform resources are required.
 * **Ingress (NGINX)** provides a single endpoint with clean routing
 * **Path-based routing** is simpler and suitable for local environments
 * **Readiness probes** ensure traffic is routed only to healthy pods
+* **Liveness probes** restart unhealthy containers so pods recover automatically
 * **Local Minikube** used for simplicity and fast setup
 * CI focuses on **validation**, not deployment, due to local environment constraints
 
