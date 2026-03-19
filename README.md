@@ -161,14 +161,44 @@ Smoke tests passed.
 
 
 ## 🔄 CI Pipeline
-GitHub Actions performs:
+GitHub Actions performs CI checks and then runs an end-to-end deploy+smoke test inside an **ephemeral Minikube** environment.
 
-* `terraform fmt -check`
-* `terraform validate`
-* `terraform init`
-* `docker build`
+What CI does:
 
-> Deployment is intentionally not executed in CI because the target environment is a local Minikube cluster.
+* Spins up a temporary **Minikube cluster inside the GitHub runner**
+* Uses Terraform to provision Kubernetes resources:
+  * Deployments
+  * Services
+  * Ingress
+* Builds the Flask application image **inside that CI Minikube environment**
+* Waits for deployments to become ready
+* Runs smoke tests against the Ingress endpoint (via port-forward)
+
+All of this happens **only inside CI**.
+
+Once the workflow finishes, the runner is destroyed and the Minikube cluster no longer exists.
+
+---
+
+## 🧑‍💻 Local Development
+
+Deployment to your local Minikube is performed manually:
+
+```bash
+minikube start -p task-k8s
+minikube addons enable ingress
+
+make tf-init
+make tf-apply
+
+minikube tunnel
+```
+
+Key clarification:
+
+* CI validates the system end-to-end in an isolated environment
+* Local Minikube is used for development and manual testing
+* CI does not modify or update your local Minikube cluster
 
 ---
 
