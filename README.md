@@ -205,7 +205,7 @@ Key clarification:
 
 ## 🧪 Run CI/CD locally (act)
 
-You can run the GitHub Actions workflow locally using `act`:
+You can run the GitHub Actions workflow locally using `act` (optional).
 
 Requirements:
 
@@ -227,7 +227,10 @@ act -j deploy-and-test
 Notes:
 
 * This mirrors CI behavior: it does not update your local Minikube cluster after the run ends.
-* If `act` cannot start Minikube due to permissions/driver constraints, use the manual steps in **Local Development** instead.
+* `act` compatibility depends on your host OS/architecture and local Docker setup.
+* If `act` cannot start Minikube or fails due to local compatibility constraints, use:
+  * GitHub Actions runs for CI verification
+  * Manual steps in **Local Development** for local deployment/testing
 
 ---
 
