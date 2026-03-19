@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - main
+    # Skip docs-only pushes.
     paths-ignore:
       - README.md
   pull_request:
+    # Skip docs-only pull requests.
     paths-ignore:
       - README.md
 
 jobs:
+  # Fast validation gate for Terraform syntax/format/provider wiring.
   terraform:
     name: Terraform Checks
     runs-on: ubuntu-latest
@@ -35,9 +38,12 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+  # End-to-end CI verification in ephemeral Minikube (deploy + smoke test).
+  # Runs on GitHub-hosted runner only, does not deploy to developer local Minikube.
   deploy-and-test:
     name: Deploy to Minikube + Smoke Test
     runs-on: ubuntu-latest
+    # Only run deploy smoke tests after Terraform static checks pass.
     needs: terraform
     steps:
       - name: Checkout
@@ -54,6 +60,7 @@ jobs:
 
       - name: Bootstrap Minikube (Terraform)
         run: |
+          # Use the bootstrap stack to create the local cluster used in CI.
           cd terraform/bootstrap
           terraform init
           terraform apply -auto-approve \
@@ -64,10 +71,12 @@ jobs:
 
       - name: Build app image into Minikube
         run: |
+          # Build directly in Minikube's image store so pods can pull locally.
           minikube -p task-k8s image build -t shadibdair/pod-meta-app:latest ./app
 
       - name: Deploy apps + Ingress (Terraform)
         run: |
+          # Main stack creates namespace, deployments, services and ingress.
           cd terraform
           terraform init
           terraform apply -auto-approve -var-file=environments/local.tfvars
@@ -76,6 +85,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Fail fast per app and print pod diagnostics for easier debugging.
           for d in app1 app2 podinfo; do
             echo "Waiting for deployment/${d} to become ready..."
             if ! kubectl -n candidate-apps rollout status "deploy/${d}" --timeout=180s; then
@@ -91,6 +101,7 @@ jobs:
           set -euo pipefail
           kubectl -n ingress-nginx get svc ingress-nginx-controller
 
+          # Route local CI traffic through ingress-nginx service.
           kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80 > /tmp/port-forward.log 2>&1 &
           PF_PID=$!
           trap "kill ${PF_PID} || true" EXIT
@@ -99,6 +110,7 @@ jobs:
           sleep 5
           SMOKE_BASE_URL="http://127.0.0.1:8080" ./scripts/smoke-test.sh
 
+  # Separate container build check to ensure Dockerfile stays valid.
   app-build:
     name: App Docker Build
     runs-on: ubuntu-latest

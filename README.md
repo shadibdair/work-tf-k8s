@@ -284,7 +284,7 @@ No additional Terraform resources are required.
 * **Readiness probes** ensure traffic is routed only to healthy pods
 * **Liveness probes** restart unhealthy containers so pods recover automatically
 * **Local Minikube** used for simplicity and fast setup
-* CI focuses on **validation**, not deployment, due to local environment constraints
+* CI performs end-to-end **ephemeral deployment + validation** inside a temporary GitHub runner Minikube environment
 
 ---
 
