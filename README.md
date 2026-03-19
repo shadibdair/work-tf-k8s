@@ -58,6 +58,7 @@ Pods (Deployments)
 * `app1` (custom Flask app)
 * `app2` (custom Flask app)
 * `podinfo` (bonus app using the same contract as app1/app2)
+* `hello-kubernetes` (extra app, contract-compliant)
 
 ---
 
@@ -144,14 +145,17 @@ make tf-apply
 Option A (with Minikube tunnel):
 
 ```bash
-minikube tunnel
+sudo minikube tunnel -p task-k8s
 ```
+
+Keep this command running in a separate terminal while you access routes.
 
 Then access:
 
 * [http://127.0.0.1/app1](http://127.0.0.1/app1)
 * [http://127.0.0.1/app2](http://127.0.0.1/app2)
 * [http://127.0.0.1/podinfo](http://127.0.0.1/podinfo)
+* [http://127.0.0.1/hello-kubernetes](http://127.0.0.1/hello-kubernetes)
 
 Option B (without tunnel, using ingress port-forward):
 
@@ -164,8 +168,9 @@ Then access:
 * [http://127.0.0.1:8080/app1](http://127.0.0.1:8080/app1)
 * [http://127.0.0.1:8080/app2](http://127.0.0.1:8080/app2)
 * [http://127.0.0.1:8080/podinfo](http://127.0.0.1:8080/podinfo)
+* [http://127.0.0.1:8080/hello-kubernetes](http://127.0.0.1:8080/hello-kubernetes)
 
-All application routes return `pod_name` and `pod_ip` as required.
+Task-contract routes (`/app1`, `/app2`, `/podinfo`) return `pod_name` and `pod_ip` as required.
 
 ---
 
@@ -175,6 +180,12 @@ Run:
 
 ```bash
 ./scripts/smoke-test.sh
+```
+
+If you are using Option A (tunnel), run the tunnel first in another terminal:
+
+```bash
+sudo minikube tunnel -p task-k8s
 ```
 
 If you are using Option B (Ingress port-forward on `:8080`), run:
@@ -205,6 +216,12 @@ Quick manual verification:
 curl -s http://127.0.0.1:8080/app1 | jq .
 curl -s http://127.0.0.1:8080/app2 | jq .
 curl -s http://127.0.0.1:8080/podinfo | jq .
+```
+
+Optional extra app check:
+
+```bash
+curl -s http://127.0.0.1:8080/hello-kubernetes
 ```
 
 To test a custom set of endpoints:
@@ -390,6 +407,29 @@ terraform apply
 ```
 
 No additional Terraform resources are required.
+
+### ✅ Added Generic App
+
+This repository also includes a fourth app entry to demonstrate module flexibility:
+
+```hcl
+hello-kubernetes = {
+  image           = "shadibdair/pod-meta-app:latest"
+  container_port  = 8080
+  service_port    = 8080
+  replicas        = 1
+  path            = "/hello-kubernetes"
+  health_path     = "/healthz"
+  ready_path      = "/readyz"
+  metrics_enabled = true
+  metrics_path    = "/metrics"
+}
+```
+
+Why this matters:
+
+* It proves the module scales to a fourth app with only one `locals.applications` entry.
+* It remains contract-compliant (`pod_name` + `pod_ip`) while reusing the same Terraform module.
 
 ---
 

@@ -30,13 +30,26 @@ locals {
     }
 
     podinfo = {
-      # "podinfo" bonus app uses the same reusable Flask app image so it
+      # podinfo bonus app uses the same reusable Flask app image so it
       # satisfies the required response contract (pod_name + pod_ip).
       image           = "shadibdair/pod-meta-app:latest"
       container_port  = 8080
       service_port    = 8080
       replicas        = 1
       path            = "/podinfo"
+      health_path     = "/healthz"
+      ready_path      = "/readyz"
+      metrics_enabled = true
+      metrics_path    = "/metrics"
+    }
+
+    hello-kubernetes = {
+      # Extra app
+      image           = "shadibdair/pod-meta-app:latest"
+      container_port  = 8080
+      service_port    = 8080
+      replicas        = 1
+      path            = "/hello-kubernetes"
       health_path     = "/healthz"
       ready_path      = "/readyz"
       metrics_enabled = true
