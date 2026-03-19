@@ -13,9 +13,11 @@ help:
 	@echo "  smoke-test       - Run local smoke tests"
 
 bootstrap-init:
+	# Initializes terraform/bootstrap providers and modules.
 	cd terraform/bootstrap && terraform init
 
 bootstrap-apply:
+	# Creates/updates local Minikube cluster and ingress addon.
 	cd terraform/bootstrap && terraform apply
 
 tf-init:
@@ -33,6 +35,7 @@ tf-plan:
 	cd terraform && terraform plan -var-file=environments/local.tfvars
 
 tf-apply:
+	# Applies the main stack (namespace, apps, services, ingress).
 	cd terraform && terraform apply -var-file=environments/local.tfvars
 
 tf-state-list:

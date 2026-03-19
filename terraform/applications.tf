@@ -1,5 +1,6 @@
 module "applications" {
   source   = "./modules/application"
+  # Reuse one module N times from locals.applications.
   for_each = local.applications
 
   name           = each.key

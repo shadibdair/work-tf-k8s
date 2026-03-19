@@ -4,6 +4,7 @@ resource "kubernetes_ingress_v1" "apps" {
     namespace = var.namespace
 
     annotations = {
+      # /appX is forwarded to backend "/" so apps can serve from root.
       "nginx.ingress.kubernetes.io/rewrite-target" = "/"
     }
   }
@@ -14,6 +15,7 @@ resource "kubernetes_ingress_v1" "apps" {
     rule {
       http {
         dynamic "path" {
+          # Create one ingress path rule per app in locals.applications.
           for_each = local.applications
 
           content {

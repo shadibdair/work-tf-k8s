@@ -1,4 +1,5 @@
 resource "null_resource" "minikube_start" {
+  # Re-run bootstrap when cluster-shaping inputs change.
   triggers = {
     profile            = var.minikube_profile
     kubernetes_version = var.kubernetes_version
@@ -19,8 +20,10 @@ resource "null_resource" "minikube_start" {
         --memory=${var.memory}
 
       minikube addons enable ingress --profile=${var.minikube_profile}
+      # Ensure terraform/kubectl commands target this profile context.
       kubectl config use-context ${var.minikube_profile}
 
+      # Block until ingress controller is ready before main stack apply.
       kubectl wait \
         --namespace ingress-nginx \
         --for=condition=Ready pods \

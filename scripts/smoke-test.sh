@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${SMOKE_BASE_URL:-http://127.0.0.1}"
+# Defaults to localhost for local runs; CI overrides this via SMOKE_BASE_URL.
 
 echo "Running smoke tests..."
 

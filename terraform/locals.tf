@@ -1,6 +1,9 @@
 locals {
+  # Providers read kubeconfig from the host machine.
   kubeconfig_path = pathexpand("~/.kube/config")
 
+  # Single source of truth for all apps.
+  # Add a new entry here to get a Deployment + Service + Ingress path automatically.
   applications = {
     app1 = {
       image          = "shadibdair/pod-meta-app:latest"

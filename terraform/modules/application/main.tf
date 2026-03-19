@@ -60,6 +60,7 @@ resource "kubernetes_deployment" "app" {
             }
           }
 
+          # Readiness gates traffic; only ready pods receive service requests.
           readiness_probe {
             http_get {
               path = var.ready_path
@@ -69,6 +70,7 @@ resource "kubernetes_deployment" "app" {
             period_seconds        = 10
           }
 
+          # Liveness restarts unhealthy containers to recover automatically.
           liveness_probe {
             http_get {
               path = var.health_path

@@ -12,6 +12,7 @@ POD_IP = os.getenv("POD_IP", "unknown-ip")
 
 @app.route("/", methods=["GET"])
 def root():
+    # Main endpoint used by the task to expose pod identity details.
     return jsonify({
         "app_name": APP_NAME,
         "pod_name": POD_NAME,
@@ -22,6 +23,7 @@ def root():
 
 @app.route("/healthz", methods=["GET"])
 def healthz():
+    # Kubernetes liveness probe endpoint.
     return jsonify({
         "status": "ok",
         "app_name": APP_NAME
@@ -30,6 +32,7 @@ def healthz():
 
 @app.route("/readyz", methods=["GET"])
 def readyz():
+    # Kubernetes readiness probe endpoint.
     return jsonify({
         "status": "ready",
         "app_name": APP_NAME
