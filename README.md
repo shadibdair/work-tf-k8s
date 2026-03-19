@@ -123,7 +123,7 @@ make tf-apply
 
 
 ## 🌐 Access Applications
-Run:
+Option A (with Minikube tunnel):
 
 ```bash
 minikube tunnel
@@ -134,6 +134,20 @@ Then access:
 * [http://127.0.0.1/app1](http://127.0.0.1/app1)
 * [http://127.0.0.1/app2](http://127.0.0.1/app2)
 * [http://127.0.0.1/podinfo](http://127.0.0.1/podinfo)
+
+Option B (without tunnel, using ingress port-forward):
+
+```bash
+kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80
+```
+
+Then access:
+
+* [http://127.0.0.1:8080/app1](http://127.0.0.1:8080/app1)
+* [http://127.0.0.1:8080/app2](http://127.0.0.1:8080/app2)
+* [http://127.0.0.1:8080/podinfo](http://127.0.0.1:8080/podinfo)
+
+For Flask-based app routes, the JSON response includes `pod_name` and `pod_ip`.
 
 ---
 
