@@ -31,6 +31,62 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+  deploy-and-test:
+    name: Deploy to Minikube + Smoke Test
+    runs-on: ubuntu-latest
+    needs: terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Bootstrap Minikube (Terraform)
+        run: |
+          cd terraform/bootstrap
+          terraform init
+          terraform apply -auto-approve \
+            -var="minikube_profile=task-k8s" \
+            -var="cpus=2" \
+            -var="memory=2048" \
+            -var="driver=docker"
+
+      - name: Build app image into Minikube
+        run: |
+          minikube -p task-k8s image build -t shadibdair/pod-meta-app:latest ./app
+
+      - name: Deploy apps + Ingress (Terraform)
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve -var-file=environments/local.tfvars
+
+      - name: Wait for deployments
+        run: |
+          kubectl -n candidate-apps rollout status deploy/app1 --timeout=180s
+          kubectl -n candidate-apps rollout status deploy/app2 --timeout=180s
+          kubectl -n candidate-apps rollout status deploy/podinfo --timeout=180s
+
+      - name: Port-forward ingress and run smoke tests
+        run: |
+          set -euo pipefail
+          kubectl -n ingress-nginx get svc ingress-nginx-controller
+
+          kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80 > /tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+          trap "kill ${PF_PID} || true" EXIT
+
+          # Allow ingress controller to accept connections
+          sleep 5
+          SMOKE_BASE_URL="http://127.0.0.1:8080" ./scripts/smoke-test.sh
+
   app-build:
     name: App Docker Build
     runs-on: ubuntu-latest
