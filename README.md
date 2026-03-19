@@ -311,6 +311,78 @@ Expected flow in the Actions UI:
 
 ---
 
+## 📸 Verification Evidence
+
+The following screenshots are included in `screenshots/` as execution proof (local + CI + Grafana):
+
+### 🚀 Local Deployment & Validation
+
+#### 1) Terraform Apply Success
+**Terraform apply completed successfully for all resources.**  
+![Terraform apply success](screenshots/make%20tf-apply.png)
+
+#### 2) Minikube Tunnel Running
+**Tunnel is running with profile `task-k8s` (`sudo minikube tunnel -p task-k8s`).**  
+![Tunnel running](screenshots/Start-tunnel.png)
+
+#### 3) Smoke Test Passed
+**Smoke tests passed for all task routes.**  
+![Smoke tests pass](screenshots/Run-smoke-test.png)
+
+#### 4) API Contract Validation
+**Manual response proof shows `pod_name` and `pod_ip`.**  
+![Manual response proof](screenshots/Manual-response-proof.png)
+
+#### 5) Kubernetes Resources Created
+**Deployments, Services, and Ingress are present in the target namespace.**  
+![Deployed resources](screenshots/Show-deployed-resources.png)
+
+#### 6) Lens Cluster View
+**Visual cluster proof from Lens showing running pods.**  
+![Lens pods view](screenshots/Lens-show-all-pod-in-cluster.png)
+
+#### 7) Probes Verification
+**Readiness and liveness probes are configured on deployments.**  
+![Probes configured](screenshots/Show-probes-are-configured.png)
+
+### 📊 Monitoring & Grafana
+
+#### 8) Monitoring Stack Running
+**Prometheus and Grafana stack is running in `monitoring` namespace.**  
+![Monitoring stack](screenshots/Verify-monitoring-stack.png)
+
+#### 9) Grafana UI Accessible
+**Grafana login/UI is reachable through port-forward.**  
+![Grafana UI](screenshots/Open-Grafana-ui.png)
+
+#### 10) Dashboard Imported
+**Imported dashboard is visible in Grafana.**  
+![Grafana dashboard](screenshots/dashboard-in-GrafanaUI-1.png)
+
+#### 11) New App in Grafana Data
+**`hello-kubernetes` is visible in Grafana query/data exploration.**  
+![New app in Grafana](screenshots/new-app-in%20Grafana-data-ui-query-explore-hello-k8s.png)
+
+### ✅ GitHub Actions CI Evidence
+
+#### 12) CI Triggered by Push
+**Workflow run was triggered after pushing changes.**  
+![CI triggered](screenshots/Push-and-trigger-CI-ui-trigger-gihubaction.png)
+
+#### 13) All Jobs Green
+**Terraform checks, build, and deploy+smoke jobs all succeeded.**  
+![CI all jobs green](screenshots/Show-all-jobs-green-githubaction-ui.png)
+
+#### 14) CI Deploy Step Proof
+**Deploy job shows rollout/wait behavior in CI environment.**  
+![CI deploy step proof](screenshots/CI-deploy-proof-deploy-and-smoke-test-githubaction-ui.png)
+
+#### 15) CI Smoke-Test Proof
+**CI smoke-test step completed successfully.**  
+![CI smoke test proof](screenshots/CI-smoke-test-proof-githubaction-ui.png)
+
+---
+
 ## 🧑‍💻 Local Development
 
 Deployment to your local Minikube is performed manually:
@@ -322,7 +394,7 @@ minikube addons enable ingress
 make tf-init
 make tf-apply
 
-minikube tunnel
+sudo minikube tunnel -p task-k8s
 ```
 
 Key clarification:
