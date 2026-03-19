@@ -10,4 +10,5 @@ module "applications" {
   replicas       = each.value.replicas
   health_path    = each.value.health_path
   ready_path     = each.value.ready_path
+  image_pull_policy = "IfNotPresent"
 }
