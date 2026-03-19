@@ -159,17 +159,37 @@ Run:
 ./scripts/smoke-test.sh
 ```
 
+If you are using Option B (Ingress port-forward on `:8080`), run:
+
+```bash
+SMOKE_BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test.sh
+```
+
 The script:
 
 * Sends requests to all endpoints
 * Fails immediately on error (`set -euo pipefail`)
-* Ensures all applications respond correctly
+* Validates JSON response contracts for Flask app routes (`app_name`, `pod_name`, `pod_ip`)
+* Validates podinfo endpoint returns a JSON identity field (`hostname` or `pod_name`)
 
 Expected output:
 
 ```
 Smoke tests passed.
 ```
+
+Quick manual verification:
+
+```bash
+curl -s http://127.0.0.1:8080/app1 | jq .
+curl -s http://127.0.0.1:8080/app2 | jq .
+curl -s http://127.0.0.1:8080/podinfo | jq .
+```
+
+Expected:
+
+* `app1` and `app2` include `app_name`, `pod_name`, and `pod_ip`
+* `podinfo` includes `hostname` (or `pod_name`)
 
 ---
 
@@ -191,6 +211,20 @@ What CI does:
 All of this happens **only inside CI**.
 
 Once the workflow finishes, the runner is destroyed and the Minikube cluster no longer exists.
+
+### What you see after pushing to GitHub
+
+When you push to `main` (excluding README-only changes), GitHub Actions triggers `ci.yml` and you will see three jobs:
+
+* **Terraform Checks** - runs `terraform init`, `terraform fmt -check`, and `terraform validate`
+* **App Docker Build** - builds the app image from `./app/Dockerfile`
+* **Deploy to Minikube + Smoke Test** - starts ephemeral Minikube, applies Terraform, waits for rollouts, and runs smoke tests
+
+Expected flow in the Actions UI:
+
+* `Terraform Checks` and `App Docker Build` complete first
+* `Deploy to Minikube + Smoke Test` runs after `Terraform Checks` passes
+* A successful run shows all jobs with green check marks
 
 ---
 
