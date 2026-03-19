@@ -67,11 +67,11 @@ Pods (Deployments)
 terraform/
   ├── bootstrap/              # Minikube bootstrap (local execution)
   ├── modules/
-  │     └── application/      # Reusable app module (Deployment + Service)
+  │     └── k8s_application/  # Reusable app module (Deployment + Service)
   ├── environments/
   │     └── local.tfvars
   ├── main.tf
-  ├── applications.tf         # Dynamic apps definition
+  ├── apps_module.tf          # Dynamic apps module wiring
   ├── ingress.tf              # Dynamic routing
 
 scripts/

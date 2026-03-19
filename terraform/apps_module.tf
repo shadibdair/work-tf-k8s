@@ -1,5 +1,5 @@
 module "applications" {
-  source = "./modules/application"
+  source = "./modules/k8s_application"
   # Reuse one module N times from locals.applications.
   for_each = local.applications
 
