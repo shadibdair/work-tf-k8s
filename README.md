@@ -62,20 +62,38 @@ Pods (Deployments)
 ---
 
 ## 📂 Project Structure
-
 ```
-terraform/
-  ├── bootstrap/              # Minikube bootstrap (local execution)
-  ├── modules/
-  │     └── k8s_application/  # Reusable app module (Deployment + Service)
-  ├── environments/
-  │     └── local.tfvars
-  ├── main.tf
-  ├── apps_module.tf          # Dynamic apps module wiring
-  ├── ingress.tf              # Dynamic routing
+app/
+  ├── Dockerfile
+  ├── requirements.txt
+  └── src/
+      └── app.py              # Flask app: /, /healthz, /readyz, /metrics (optional)
+
+helm/
+  └── monitoring/
+      ├── values.yaml        # kube-prometheus-stack overrides (Grafana/Prometheus only)
+      └── README.md
 
 scripts/
   └── smoke-test.sh
+
+terraform/
+  ├── bootstrap/
+  ├── environments/
+  │   ├── local.tfvars        # enables monitoring locally
+  │   └── ci.tfvars           # keeps monitoring disabled in CI
+  ├── modules/
+  │   └── k8s_application/
+  │       ├── main.tf
+  │       ├── variables.tf
+  │       └── outputs.tf
+  ├── main.tf
+  ├── apps_module.tf
+  ├── ingress.tf
+  ├── providers.tf
+  ├── outputs.tf
+  ├── locals.tf
+  └── monitoring.tf           # optional kube-prometheus-stack + Prometheus scraping
 
 .github/workflows/
   └── ci.yml
@@ -204,7 +222,7 @@ Expected:
 
 
 ## 📈 Monitoring (kube-prometheus-stack)
-This repository can optionally install `kube-prometheus-stack` into a separate `monitoring` namespace and scrape the custom Flask apps.
+This repository can optionally install `kube-prometheus-stack` into a separate `monitoring` namespace and scrape the apps that expose Prometheus metrics (via `GET /metrics`).
 
 Notes:
 * Monitoring is enabled via Terraform variable `enable_monitoring`.
@@ -357,6 +375,10 @@ locals {
       path           = "/myapp"
       health_path    = "/healthz"
       ready_path     = "/readyz"
+      # Optional: enable Prometheus scraping for this app (only used when
+      # Terraform variable enable_monitoring = true).
+      metrics_enabled = true
+      metrics_path    = "/metrics"
     }
   }
 }
