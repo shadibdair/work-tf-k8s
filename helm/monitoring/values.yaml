@@ -1,0 +1,24 @@
+grafana:
+  enabled: true
+  sidecar:
+    dashboards:
+      # We do not auto-import custom dashboards via ConfigMaps in this repo.
+      # Dashboards can be imported manually from Grafana UI using known dashboard IDs.
+      enabled: false
+      label: grafana_dashboard
+      # (kept for reference)
+      searchNamespace: ALL
+
+alertmanager:
+  enabled: false
+
+# Needed to build CPU/memory dashboards (node exporter + kube-state-metrics).
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+

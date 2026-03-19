@@ -83,7 +83,7 @@ jobs:
           # Main stack creates namespace, deployments, services and ingress.
           cd terraform
           terraform init
-          terraform apply -auto-approve -var-file=environments/local.tfvars
+          terraform apply -auto-approve -var-file=environments/ci.tfvars
 
       - name: Wait for deployments
         run: |

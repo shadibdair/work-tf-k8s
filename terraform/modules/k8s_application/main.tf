@@ -89,6 +89,11 @@ resource "kubernetes_service" "app" {
   metadata {
     name      = var.name
     namespace = var.namespace
+
+    # Label the Service so Prometheus ServiceMonitor discovery can select it.
+    labels = {
+      app = var.name
+    }
   }
 
   spec {
@@ -99,6 +104,7 @@ resource "kubernetes_service" "app" {
     port {
       port        = var.service_port
       target_port = var.container_port
+      name        = "http"
     }
 
     type = "ClusterIP"

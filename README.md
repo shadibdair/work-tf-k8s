@@ -194,6 +194,46 @@ Expected:
 ---
 
 
+## 📈 Monitoring (kube-prometheus-stack)
+This repository can optionally install `kube-prometheus-stack` into a separate `monitoring` namespace and scrape the custom Flask apps.
+
+Notes:
+* Monitoring is enabled via Terraform variable `enable_monitoring`.
+* Prometheus scrapes the applications from `GET /metrics` (including `app1`, `app2`, and `podinfo`).
+* The custom Flask apps (`app1` and `app2`) export Prometheus metrics at `/metrics` (via `prometheus-client`).
+* `podinfo` is scraped from its `/metrics` endpoint (port `9898`).
+* GitHub Actions CI keeps monitoring disabled (`terraform/environments/ci.tfvars` sets `enable_monitoring = false`).
+
+Enable it locally:
+
+```bash
+# (1) Rebuild app image so it includes GET /metrics
+docker buildx build --platform linux/amd64,linux/arm64 -t shadibdair/pod-meta-app:latest --push .
+
+# (2) Apply Terraform (installs monitoring + app stack)
+make tf-apply
+
+# (3) Restart apps so they pick up the new image tag content
+kubectl -n candidate-apps rollout restart deploy/app1 deploy/app2
+```
+
+Access Grafana:
+
+```bash
+kubectl -n monitoring port-forward svc/kube-prometheus-stack-grafana 3000:80
+```
+
+Then open: `http://127.0.0.1:3000`
+
+Grafana dashboards (manual import from Grafana UI):
+To visualize Kubernetes CPU/memory “per app”, import these dashboards and then filter by `Namespace` / `Pod`:
+- `15757` → `Kubernetes / Views / Global`
+- `15759` → `Kubernetes / Views / Nodes`
+- `15760` → `Kubernetes / Views / Pods`
+- `315` → `Kubernetes cluster monitoring via Prometheus`
+
+In Grafana: `Dashboards` → `New` → `Import`, enter the dashboard ID, and pick your Prometheus datasource (from this stack).
+
 ## 🔄 CI Pipeline
 GitHub Actions performs CI checks and then runs an end-to-end deploy+smoke test inside an **ephemeral Minikube** environment.
 
