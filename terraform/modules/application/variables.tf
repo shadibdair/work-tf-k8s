@@ -40,9 +40,3 @@ variable "ready_path" {
   type        = string
   default     = "/readyz"
 }
-
-variable "image_pull_policy" {
-  description = "Kubernetes image pull policy for the application container"
-  type        = string
-  default     = "IfNotPresent"
-}

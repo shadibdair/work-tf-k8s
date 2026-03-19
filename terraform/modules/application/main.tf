@@ -32,7 +32,6 @@ resource "kubernetes_deployment" "app" {
         container {
           name  = var.name
           image = var.image
-          image_pull_policy = var.image_pull_policy
 
           port {
             container_port = var.container_port
